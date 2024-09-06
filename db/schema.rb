@@ -10,13 +10,13 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_06_191139) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_06_023445) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "building_custom_field_values", force: :cascade do |t|
-    t.bigint "building_id", null: false
-    t.bigint "custom_field_id", null: false
+    t.bigint "building_id"
+    t.bigint "custom_field_id"
     t.string "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
@@ -28,7 +28,7 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_06_191139) do
     t.string "address"
     t.string "state"
     t.string "zip"
-    t.bigint "client_id", null: false
+    t.bigint "client_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_buildings_on_client_id"
@@ -43,8 +43,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_06_191139) do
   create_table "custom_fields", force: :cascade do |t|
     t.string "name"
     t.string "field_type"
+    t.jsonb "enum_choices", default: []
     t.bigint "client_id"
-    t.jsonb "enum_choices"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_custom_fields_on_client_id"
