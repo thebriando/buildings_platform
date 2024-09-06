@@ -32,6 +32,15 @@
 - Start server
   `> rails server`
 
+## Clients
+
+Clients are defined in the seed file, refer to `db/seeds.rb` to get the clients defined for the app.
+To get client ids and building ids:
+
+- Run `rails console`
+- Run `Client.all` to get all clients and their ids
+- Run `Building.all` to get all buildilngs and building ids
+
 ## Testing the API
 
 - Download Postman, or use curl
@@ -51,7 +60,7 @@ Request body:
     "address": (string, required) The street address of the building.
     "state": (string, required) The state where the building is located.
     "zip": (string, required) The ZIP code for the building.
-    [custom_field]: Any custom fields defined for the client. These fields will vary depending on the client's configuration.
+    [custom_field]: Any custom fields defined for the client. These fields will vary depending on the client's configuration. Their values can either be numbers, freeforms, or enums
   }
 }
 ```
