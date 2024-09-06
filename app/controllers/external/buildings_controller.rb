@@ -5,12 +5,12 @@ module External
       page = params[:page] || 1
       per_page = params[:per_page] || 10  # Default to 10 items per page if no per_page param is provided
 
-      # Fetch paginated buildings using Kaminari
+      # Fetch paginated buildings
       buildings = Building.page(page).per(per_page)
 
       render json: {
         status: "success",
-        buildings: buildings.as_json(include: { client: { only: :name }, building_custom_field_values: { only: [ :custom_field_id, :value ] } }),
+        buildings: buildings.map { |building| format_building_response(building) },
         pagination: {
           current_page: buildings.current_page,
           next_page: buildings.next_page,
@@ -19,6 +19,22 @@ module External
           total_count: buildings.total_count
         }
       }
+    end
+    # Format the building response to include custom fields
+    def format_building_response(building)
+      # Collect custom field values
+      custom_fields = building.building_custom_field_values.includes(:custom_field).each_with_object({}) do |field_value, hash|
+        hash[field_value.custom_field.name] = field_value.value
+      end
+
+      # Return the building details
+      {
+        id: building.id,
+        address: building.address,
+        state: building.state,
+        zip: building.zip,
+        client_name: building.client.name
+      }.merge(custom_fields)
     end
   end
 end
