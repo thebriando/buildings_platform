@@ -1,6 +1,12 @@
 class BuildingsController < ApplicationController
   def create
-    client = Client.find(params[:client_id])
+    client_id = params[:client_id].to_i
+    client = Client.find_by(id: client_id)
+    # If client is not found, return 404
+    if client.nil?
+      render json: { status: "error", message: "Client not found" }, status: :not_found and return
+    end
+
     building = client.buildings.new(building_params)
 
     if building.save
@@ -13,7 +19,7 @@ class BuildingsController < ApplicationController
           status: "error",
           message: "Invalid custom fields",
           invalid_fields: invalid_fields
-        }, status: :bad_request and return  # Stop execution here
+        }, status: :bad_request and return
       end
 
       # If no invalid fields, return the success response
@@ -33,21 +39,31 @@ class BuildingsController < ApplicationController
   end
 
   def update
-    building = Building.find(params[:id])
+    # Use find_by to avoid raising an exception
+    client_id = params[:client_id].to_i
+    client = Client.find_by(id: client_id)
 
+    # If client is not found, return 404
+    if client.nil?
+      render json: { status: "error", message: "Client not found" }, status: :not_found and return
+    end
+
+    # Use find_by to avoid raising an exception
+    building = Building.find_by(id: params[:id])
+
+    # If building is not found, return 404
+    if building.nil?
+      render json: { status: "error", message: "Building not found" }, status: :not_found and return
+    end
+
+    # If building doesn't belong to the client, return 400
+    if building.client_id != client.id
+      render json: { status: "error", message: "Building does not belong to the specified client" }, status: :bad_request and return
+    end
+
+    # Update the building if validation passes
     if building.update(building_params)
-      # Handle invalid custom fields
-      invalid_fields = process_custom_fields(building.client, building)
-
-      if invalid_fields.any?
-        render json: {
-          status: "error",
-          message: "Invalid custom fields",
-          invalid_fields: invalid_fields
-        }, status: :bad_request and return
-      end
-
-      # If no invalid fields, return the success response
+      process_custom_fields(client, building)
       render json: {
         status: "success",
         message: "Building updated successfully",
