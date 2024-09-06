@@ -1,8 +1,8 @@
 # Clear existing data
-BuildingCustomFieldValue.delete_all
-Building.delete_all
-CustomField.delete_all
-Client.delete_all
+# BuildingCustomFieldValue.delete_all
+# Building.delete_all
+# CustomField.delete_all
+# Client.delete_all
 
 # Create Clients
 client1 = Client.create!(name: "Client One")

@@ -7,7 +7,7 @@ class BuildingCustomFieldValue < ApplicationRecord
 
   private
 
-  # Validate that the value corresponds to the field type (number, freeform, enum)
+  # Validate the custom field value based on its field type
   def validate_field_value
     case custom_field.field_type
     when "number"
@@ -24,9 +24,10 @@ class BuildingCustomFieldValue < ApplicationRecord
   end
 
   def validate_enum_value
-    # Ensure enum_choices is an array and validate against it
-    valid_enum_choices = custom_field.enum_choices.is_a?(Array) ? custom_field.enum_choices : custom_field.enum_choices.split(",")
-    unless valid_enum_choices.include?(value)
+    valid_enum_choices = custom_field.enum_choices.map(&:strip)
+
+    # Check if the provided value is in the list of valid enum choices
+    unless valid_enum_choices.include?(value.strip)
       errors.add(:value, "must be one of: #{valid_enum_choices.join(', ')}")
     end
   end
