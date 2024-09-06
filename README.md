@@ -84,8 +84,8 @@ Request body:
     "address": "123 Main St",
     "state": "NY",
     "zip": "10001",
-    "bathroom_count": "2.5",
-    "living_room_color": "Blue"
+    "bathroom_count": 2.5,
+    "living_room_color": "Blue",
   }
 }
 ```
@@ -126,8 +126,9 @@ Request body:
     "address": "456 Elm St",
     "state": "CA",
     "zip": "90210",
-    "bathroom_count": "3",
-    "living_room_color": "Green"
+    "bathroom_count": 4,
+    "living_room_color": "Green",
+    "walkway_type": "Brick"
   }
 }
 
@@ -148,33 +149,36 @@ Example Response:
 
 ```
 {
-  "status": "success",
-  "buildings": [
-    {
-      "id": 6,
-      "client_name": "Client Three",
-      "address": "789 Pine St",
-      "state": "TX",
-      "zip": "73301",
-      "pool_size": "25",
-      "roof_type": "Tile"
-    },
-    {
-      "id": 7,
-      "client_name": "Client Four",
-      "address": "101 Oak St",
-      "state": "FL",
-      "zip": "33101",
-      "bathroom_count": "3",
-      "garage_size": "1"
+    "status": "success",
+    "buildings": [
+        {
+            "id": 1,
+            "address": "123 Main St",
+            "state": "NY",
+            "zip": "10001",
+            "client_name": "Client One",
+            "bathroom_count": 2.5,
+            "living_room_color": "Blue",
+            "walkway_type": "Brick"
+        },
+        {
+            "id": 2,
+            "address": "456 Elm St",
+            "state": "CA",
+            "zip": "90210",
+            "client_name": "Client One",
+            "bathroom_count": 3,
+            "living_room_color": "Green",
+            "walkway_type": "Concrete"
+        }
+    ],
+    "pagination": {
+        "current_page": 1,
+        "next_page": 2,
+        "prev_page": null,
+        "total_pages": 6,
+        "total_count": 12
     }
-  ],
-  "pagination": {
-    "current_page": 2,
-    "per_page": 2,
-    "total_pages": 5,
-    "total_count": 10
-  }
 }
 ```
 
