@@ -83,30 +83,44 @@ class BuildingsController < ApplicationController
     params.require(:building).permit(:address, :state, :zip)
   end
 
-  # This method validates and processes custom fields
+  # This method validates and processes custom fields, including type validation
   def process_custom_fields(client, building, building_params)
-    # Define the standard fields to exclude from custom field processing
     standard_fields = %w[address state zip]
 
     building_params.each do |key, value|
-      # Skip standard fields
       next if standard_fields.include?(key)
 
       custom_field = client.custom_fields.find_by(name: key)
 
-      # Return false if custom field is not found
       if custom_field.nil?
         return { valid: false, message: "Custom field '#{key}' is not defined for this client" }
       end
 
-      # If custom field is an enum, validate the value
-      if custom_field.field_type == "enum" && !custom_field.enum_choices.include?(value)
-        return { valid: false, message: "Value '#{value}' for custom field '#{key}' is not valid. Valid options are: #{custom_field.enum_choices.join(', ')}" }
+      # Validate and store the value based on the field type
+      case custom_field.field_type
+      when "number"
+        unless value.is_a?(Numeric)
+          return { valid: false, message: "Value '#{value}' for custom field '#{key}' must be a number" }
+        end
+        # Save the value as a number
+        value_to_store = value
+      when "freeform"
+        unless value.is_a?(String)
+          return { valid: false, message: "Value '#{value}' for custom field '#{key}' must be a string" }
+        end
+        value_to_store = value
+      when "enum"
+        unless custom_field.enum_choices.include?(value)
+          return { valid: false, message: "Value '#{value}' for custom field '#{key}' is not valid. Valid options are: #{custom_field.enum_choices.join(', ')}" }
+        end
+        value_to_store = value
+      else
+        return { valid: false, message: "Invalid field type for custom field '#{key}'" }
       end
 
-      # If validation passes, save or update the custom field value
+      # Store the custom field value
       custom_value = building.building_custom_field_values.find_or_initialize_by(custom_field: custom_field)
-      custom_value.update!(value: value)
+      custom_value.update!(value: value_to_store)
     end
 
     { valid: true }

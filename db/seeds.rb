@@ -32,11 +32,11 @@ clients.each do |client_data|
   building2 = client.buildings.create!(address: "456 Elm St", state: "CA", zip: "90210")
 
   # Add custom field values for each building
-  building1.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "bathroom_count"), value: "2.5")
+  building1.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "bathroom_count"), value: 2.5)
   building1.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "living_room_color"), value: "Blue")
   building1.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "walkway_type"), value: "Brick")
 
-  building2.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "bathroom_count"), value: "3")
+  building2.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "bathroom_count"), value: 3)
   building2.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "living_room_color"), value: "Green")
   building2.building_custom_field_values.create!(custom_field: client.custom_fields.find_by(name: "walkway_type"), value: "Concrete")
 end

@@ -10,14 +10,14 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.2].define(version: 2024_09_06_200018) do
+ActiveRecord::Schema[7.2].define(version: 2024_09_06_201123) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
 
   create_table "building_custom_field_values", force: :cascade do |t|
     t.bigint "building_id"
     t.bigint "custom_field_id"
-    t.string "value"
+    t.jsonb "value"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["building_id"], name: "index_building_custom_field_values_on_building_id"
