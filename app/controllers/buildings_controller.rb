@@ -85,7 +85,9 @@ class BuildingsController < ApplicationController
       if custom_field
         # Find or initialize the BuildingCustomFieldValue for the building
         custom_value = building.building_custom_field_values.find_or_initialize_by(custom_field: custom_field)
-        custom_value.update(value: field_value)
+        unless custom_value.update(value: field_value)
+          invalid_fields << { field_name => custom_value.errors.full_messages }
+        end
       else
         invalid_fields << field_name  # Collect invalid field names
       end
