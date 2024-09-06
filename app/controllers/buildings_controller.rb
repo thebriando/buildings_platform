@@ -128,17 +128,34 @@ class BuildingsController < ApplicationController
 
   # Format the building response to include custom fields
   def format_building_response(building)
-    # Load building custom field values with associated custom fields
-    custom_fields = building.building_custom_field_values.includes(:custom_field).each_with_object({}) do |field_value, hash|
-      hash[field_value.custom_field.name] = field_value.value
-    end
-
-    # Merge the standard fields (address, state, zip) with the custom fields
-    {
+    response = {
       id: building.id,
       address: building.address,
       state: building.state,
       zip: building.zip
-    }.merge(custom_fields)
+    }
+
+    # Fetch all custom fields for the building's client
+    client_custom_fields = building.client.custom_fields
+
+    # Map the custom fields to the response, with their values or nil if not set
+    client_custom_fields.each do |custom_field|
+      field_name = custom_field.name
+      custom_value = building.building_custom_field_values.find_by(custom_field: custom_field)
+
+      # Assign the value if it's present, otherwise nil
+      if custom_value.present?
+        if custom_field.field_type == "number"
+          response[field_name] = custom_value.value.to_f
+        else
+          response[field_name] = custom_value.value
+        end
+      else
+        # If no value is set, return nil
+        response[field_name] = nil
+      end
+    end
+
+    response
   end
 end
