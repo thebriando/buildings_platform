@@ -1,7 +1,7 @@
 class BuildingsController < ApplicationController
   def create
-    client_id = params[:client_id].to_i
-    client = Client.find_by(id: client_id)
+    client = Client.find_by(id: params[:client_id])
+
     # If client is not found, return 404
     if client.nil?
       render json: { status: "error", message: "Client not found" }, status: :not_found and return
@@ -10,26 +10,18 @@ class BuildingsController < ApplicationController
     building = client.buildings.new(building_params)
 
     if building.save
-      # Process custom fields dynamically
-      invalid_fields = process_custom_fields(client, building)
+      validation_result = process_custom_fields(client, building, params[:building])
 
-      # Handle invalid custom fields
-      if invalid_fields.any?
+      if validation_result[:valid]
         render json: {
-          status: "error",
-          message: "Invalid custom fields",
-          invalid_fields: invalid_fields
-        }, status: :bad_request and return
+          status: "success",
+          message: "Building created successfully",
+          building: format_building_response(building)
+        }, status: :created
+      else
+        render json: { status: "error", message: validation_result[:message] }, status: :bad_request
       end
-
-      # If no invalid fields, return the success response
-      render json: {
-        status: "success",
-        message: "Building created successfully",
-        building: format_building_response(building)
-      }, status: :created
     else
-      # Return 400 if validation fails
       render json: {
         status: "error",
         message: "Building could not be created",
@@ -39,16 +31,13 @@ class BuildingsController < ApplicationController
   end
 
   def update
-    # Use find_by to avoid raising an exception
-    client_id = params[:client_id].to_i
-    client = Client.find_by(id: client_id)
+    client = Client.find_by(id: params[:client_id])
 
     # If client is not found, return 404
     if client.nil?
       render json: { status: "error", message: "Client not found" }, status: :not_found and return
     end
 
-    # Use find_by to avoid raising an exception
     building = Building.find_by(id: params[:id])
 
     # If building is not found, return 404
@@ -61,14 +50,19 @@ class BuildingsController < ApplicationController
       render json: { status: "error", message: "Building does not belong to the specified client" }, status: :bad_request and return
     end
 
-    # Update the building if validation passes
+    # Update building and process custom fields
     if building.update(building_params)
-      process_custom_fields(client, building)
-      render json: {
-        status: "success",
-        message: "Building updated successfully",
-        building: format_building_response(building)
-      }, status: :ok
+      validation_result = process_custom_fields(client, building, params[:building])
+
+      if validation_result[:valid]
+        render json: {
+          status: "success",
+          message: "Building updated successfully",
+          building: format_building_response(building)
+        }, status: :ok
+      else
+        render json: { status: "error", message: validation_result[:message] }, status: :bad_request
+      end
     else
       render json: {
         status: "error",
@@ -89,27 +83,33 @@ class BuildingsController < ApplicationController
     params.require(:building).permit(:address, :state, :zip)
   end
 
-  # Process custom fields and return a list of invalid fields (if any)
-  def process_custom_fields(client, building)
-    custom_field_params = params[:building].except(:address, :state, :zip)
-    invalid_fields = []
+  # This method validates and processes custom fields
+  def process_custom_fields(client, building, building_params)
+    # Define the standard fields to exclude from custom field processing
+    standard_fields = %w[address state zip]
 
-    custom_field_params.each do |field_name, field_value|
-      # Check if the custom field exists for the client
-      custom_field = client.custom_fields.find_by(name: field_name)
+    building_params.each do |key, value|
+      # Skip standard fields
+      next if standard_fields.include?(key)
 
-      if custom_field
-        # Find or initialize the BuildingCustomFieldValue for the building
-        custom_value = building.building_custom_field_values.find_or_initialize_by(custom_field: custom_field)
-        unless custom_value.update(value: field_value)
-          invalid_fields << { field_name => custom_value.errors.full_messages }
-        end
-      else
-        invalid_fields << field_name  # Collect invalid field names
+      custom_field = client.custom_fields.find_by(name: key)
+
+      # Return false if custom field is not found
+      if custom_field.nil?
+        return { valid: false, message: "Custom field '#{key}' is not defined for this client" }
       end
+
+      # If custom field is an enum, validate the value
+      if custom_field.field_type == "enum" && !custom_field.enum_choices.include?(value)
+        return { valid: false, message: "Value '#{value}' for custom field '#{key}' is not valid. Valid options are: #{custom_field.enum_choices.join(', ')}" }
+      end
+
+      # If validation passes, save or update the custom field value
+      custom_value = building.building_custom_field_values.find_or_initialize_by(custom_field: custom_field)
+      custom_value.update!(value: value)
     end
 
-    invalid_fields
+    { valid: true }
   end
 
   # Format the building response to include custom fields
