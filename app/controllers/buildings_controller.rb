@@ -18,6 +18,11 @@ class BuildingsController < ApplicationController
     end
   end
 
+  def index
+    buildings = Building.page(params[:page]).per(10)
+    render json: buildings, include: [ :client, :custom_fields ]
+  end
+
   private
 
   def building_params
