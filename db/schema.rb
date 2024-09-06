@@ -43,7 +43,8 @@ ActiveRecord::Schema[7.2].define(version: 2024_09_06_023503) do
   create_table "custom_fields", force: :cascade do |t|
     t.string "name"
     t.string "field_type"
-    t.bigint "client_id", null: false
+    t.bigint "client_id"
+    t.text "enum_choices"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["client_id"], name: "index_custom_fields_on_client_id"
